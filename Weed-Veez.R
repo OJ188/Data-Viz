@@ -16,7 +16,7 @@ df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = 
 attach(df)
 summary(df)
 head(df)
-date <- as.Date(date)
+df$date <- as.Date(df$date)
 
 
 ###### COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
@@ -96,12 +96,20 @@ sum(is.na(LowQN))
 df[is.na(LowQ)]
 
 
+#  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
+df %>%
+  filter(State=="Nevada" ) %>%
+  ggplot( aes(x=date, y=HighQN)) +
+  geom_line()
 
+# Kangda graphs2(treemap 2014-01-01)
+df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
+df2=df1[c(1:51),]
+df2$date <- as.Date(df2$date)
+library(treemap)
 
-
-
-
-
-
-
-
+treemap(df2,
+        index="State",
+        vSize="HighQN",
+        type="index"
+)
