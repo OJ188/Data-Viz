@@ -1,0 +1,8 @@
+---
+title: "Weed Veez"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, fig.align="center",error=FALSE)
+```
