@@ -20,12 +20,19 @@ date <- as.Date(date)
 df = df[with(df, order(State,date)),]
 na.locf(df)
 
-###### PLOTING ALABAMA VALUES
-ggplot(data2, aes(date, value)) +
-  geom_line() +
-  geom_area(color="black", fill="red") +
-  annotate("text", x=as.Date("2017-01-01"), y=19000, label=("Bitcoin value over time"))
+###### PLOTING ALABAMA VALUES x=date[value==max(value)], y=max(value)
+Alabama = cbind.data.frame(date[State=="Alabama"], HighQ[State=="Alabama"])
+Alabama_names = c("Alabama_date","Alabama_HighQ")
+# summary(Alabama)
+names(Alabama) = Alabama_names
+attach(Alabama)
 
+
+ggplot(Alabama, aes(Alabama_date, Alabama_HighQ)) +
+  geom_line() +
+  geom_area(color="black", fill="red")
+  # annotate("text", x=as.Date("2017-01-01"), y=19000, label=("Bitcoin value over time"))
+# dev.off()
 ###### OTHER FUNCTIONS
 sum(is.na(LowQN))
 df[is.na(LowQ)]
