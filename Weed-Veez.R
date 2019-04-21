@@ -125,15 +125,31 @@ Mean_state %>%
 
 
 
+
+
+
+
+
+
+
+#original lolliplot
+
+Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+Mean_state$HighQ = Mean_state$HighQ[1:51]
+attach(Mean_state)
+
+label_max = paste(c(State[HighQ==max(HighQ)],":", ceiling(max(HighQ)),"$/oz."), collapse = " ")
+label_mean = paste(c("Mean :", ceiling(mean(HighQ)),"$/oz."), collapse = " ")
+label_min = paste(c(State[HighQ==min(HighQ)],":", ceiling(min(HighQ)),"$/oz."), collapse = " ")
+
 # Reorder
-p = Mean_state %>%
+Mean_state %>%
   arrange(HighQ) %>%
   mutate(State=factor(State,State)) %>%
   ggplot(aes(x=State, y=HighQ)) +
-  geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 1.3, 0.7)) +
-  geom_point( color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 5, 2) ) +
+  geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color="skyblue") +
+  geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
   theme_light() +
-
   coord_flip() +
   theme(
     panel.grid.major.y = element_blank(),
@@ -142,46 +158,82 @@ p = Mean_state %>%
   ) +
   ylab("Mean price per state") +
   
-  annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 100,
-    label=("North Dakota : 1 oz. (28g), 415$")) +
-  annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent") +
+  annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 130,
+           # label=("North Dakota : 415$/oz."), color="red") +
+           label=label_max, color="red") +
+  annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent", color="red") +
   
   annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
-    label=("Oregon : 1 oz. (28g), 208$")) +
-  annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent") +
+           label=("Oregon : 208$/oz."), color="red") +
+  annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent", color="red") +
   
-  geom_hline(yintercept=mean(HighQ), color="orange", size=.5)
-
-dev.off()
-
-p +
-  annotate("text", x = State[HighQ==max(HighQ)], y = max(HighQ)*0.8, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0)
+  geom_hline(yintercept=mean(HighQ), color="blue", size=.5) +
+  annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) + 100,
+           label=label_mean, color="blue")
 
 
 
 
 
-p = ggplot(data, aes(x=x, y=y)) +
-  geom_segment( aes(x=x, xend=x, y=0, yend=y ), color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 1.3, 0.7) ) +
-  geom_point( color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 5, 2) ) +
-  theme_light() +
-  coord_flip() +
-  theme(
-    legend.position="none",
-    panel.grid.major.y = element_blank(),
-    panel.border = element_blank(),
-    axis.ticks.y = element_blank()
-  ) +
-  ylab("Value of Y")
-p
-dev.off()
 
-p +
-  annotate("text", x = grep("D", data$x), y = data$y[which(data$x=="D")]*1.2, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0) + 
-  annotate("text", x = grep("A", data$x), y = data$y[which(data$x=="A")]*1.2, label = paste("Group A is not too bad\n (val=",data$y[which(data$x=="A")] %>% round(2),")",sep="" ) , color="orange", size=4 , angle=0, fontface="bold", hjust=0) +
-  ggtitle("How did groups A and D perform?")
-
-                                        
+# 
+# # Higlighting max and min
+# p = Mean_state %>%
+#   arrange(HighQ) %>%
+#   mutate(State=factor(State,State)) %>%
+#   ggplot(aes(x=State, y=HighQ)) +
+#   geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 1.3, 0.7)) +
+#   geom_point( color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 5, 2) ) +
+#   theme_light() +
+# 
+#   coord_flip() +
+#   theme(
+#     panel.grid.major.y = element_blank(),
+#     panel.border = element_blank(),
+#     axis.ticks.y = element_blank()
+#   ) +
+#   ylab("Mean price per state") +
+#   
+#   annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 100,
+#     label=("North Dakota : 1 oz. (28g), 415$")) +
+#   annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent") +
+#   
+#   annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
+#     label=("Oregon : 1 oz. (28g), 208$")) +
+#   annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent") +
+#   
+#   geom_hline(yintercept=mean(HighQ), color="orange", size=.5)
+# 
+# dev.off()
+# 
+# p +
+#   annotate("text", x = State[HighQ==max(HighQ)], y = max(HighQ)*0.8, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0)
+# 
+# 
+# 
+# 
+# 
+# p = ggplot(data, aes(x=x, y=y)) +
+#   geom_segment( aes(x=x, xend=x, y=0, yend=y ), color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 1.3, 0.7) ) +
+#   geom_point( color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 5, 2) ) +
+#   theme_light() +
+#   coord_flip() +
+#   theme(
+#     legend.position="none",
+#     panel.grid.major.y = element_blank(),
+#     panel.border = element_blank(),
+#     axis.ticks.y = element_blank()
+#   ) +
+#   ylab("Value of Y")
+# p
+# dev.off()
+# 
+# p +
+#   annotate("text", x = grep("D", data$x), y = data$y[which(data$x=="D")]*1.2, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0) + 
+#   annotate("text", x = grep("A", data$x), y = data$y[which(data$x=="A")]*1.2, label = paste("Group A is not too bad\n (val=",data$y[which(data$x=="A")] %>% round(2),")",sep="" ) , color="orange", size=4 , angle=0, fontface="bold", hjust=0) +
+#   ggtitle("How did groups A and D perform?")
+# 
+#                                         
 
 
 
