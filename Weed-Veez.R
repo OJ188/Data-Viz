@@ -77,7 +77,6 @@ Mean_HighQ_state %>%
       panel.border = element_blank(),
       axis.ticks.y = element_blank()
     ) +
-    xlab("") +
     ylab("Mean price per state") +
     
     annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 160,
@@ -126,7 +125,6 @@ p = Mean_HighQ_state %>%
     panel.border = element_blank(),
     axis.ticks.y = element_blank()
   ) +
-  xlab("") +
   ylab("Mean price per state") +
   
   annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 100,
@@ -159,7 +157,6 @@ p = ggplot(data, aes(x=x, y=y)) +
     panel.border = element_blank(),
     axis.ticks.y = element_blank()
   ) +
-  xlab("") +
   ylab("Value of Y")
 p
 dev.off()

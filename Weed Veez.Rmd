@@ -8,27 +8,43 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, warning=FALSE, fig.align="center", error=FALSE)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, fig.align="center", error=FALSE, message = FALSE)
 ```
 
 
 ```{r libraries, message=FALSE,eval=TRUE}
 
+library(zoo)
 library(ggplot2)
 library(dplyr)
 library(hrbrthemes)
 library(viridis)
 library(plotly)
 library(tidyverse)
+library(dygraphs)
+library(xts)          # To make the convertion data-frame / xts format
+library(lubridate)
 ```
 
 This is a test `r aer`.
 
 ***
 
+```{r opening file}
 
+###### OPENING FILE
+df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
+attach(df)
+date <- as.Date(date)
 
-```{r lollipop, message=FALSE,eval=TRUE}
+###### COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
+df = df[with(df, order(State,date)),]
+na.locf(df)
+
+```
+
+```{r lollipop, message=FALSE}
+
 ###### Lollipop chart : Mean by state, HighQ, MedQ and LowQ
 Mean_HighQ_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
 Mean_HighQ_state$HighQ = Mean_HighQ_state$HighQ[1:51]
@@ -36,15 +52,16 @@ attach(Mean_HighQ_state)
 # Mean_MedQ_state = aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
 # Mean_LowQ_state = aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
 
-geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) 
 
 # Reorder
 Mean_HighQ_state %>%
   arrange(HighQ) %>%
   mutate(State=factor(State,State)) %>%
   ggplot(aes(x=State, y=HighQ)) +
-    geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color="skyblue") +
-    geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+    geom_segment( aes(x=State, xend=State, y=0, yend=HighQ),
+      color="skyblue") +
+    geom_point( size=3, color="red", fill=alpha("orange", 0.3),
+      alpha=0.7, shape=21, stroke=2) +
     theme_light() +
     coord_flip() +
     theme(
@@ -52,7 +69,6 @@ Mean_HighQ_state %>%
       panel.border = element_blank(),
       axis.ticks.y = element_blank()
     ) +
-    xlab("") +
     ylab("Mean price per state") +
     
     annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 160,
