@@ -1,3 +1,4 @@
+setwd("C:/Users/Théo/Desktop/GitHub/Weed-Veez")
 # Library
 library(zoo)
 library(ggplot2)
@@ -84,6 +85,8 @@ if(Choix==3)
 
 names(Quality) = "Q"
 attach(Quality)
+Q = as.numeric(HighQ)
+State = as.character(State)
 
 label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
 label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
@@ -130,9 +133,7 @@ Mean_state %>%
 
 
 
-
-
-#original lolliplot
+#original lolliplot working
 
 Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
 Mean_state$HighQ = Mean_state$HighQ[1:51]
