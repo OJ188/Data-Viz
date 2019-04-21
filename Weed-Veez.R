@@ -13,7 +13,7 @@ library(lubridate)
 ###### OPENING FILE
 df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
 attach(df)
-date <- as.Date(date)
+df$date <- as.Date(df$date)
 
 
 ###### COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
@@ -206,7 +206,7 @@ data2 %>%
   coord_flip()
 
 #  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
-df$date <- as.Date(df$date)
+
 df %>%
   filter(State=="Nevada" ) %>%
   ggplot( aes(x=date, y=HighQN)) +
