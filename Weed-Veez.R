@@ -62,24 +62,28 @@ Choix = 1
 # Choix = 3
 if(Choix==1)
 {
-  Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state = aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
   Mean_state$HighQ = Mean_state$HighQ[1:51]
-  Q = HighQ
+  attach(Mean_state)
+  Quality = data.frame(HighQ)
 }
 if(Choix==2)
 {
   Mean_state = data.frame(aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
   Mean_state$MedQ = Mean_state$MedQ[1:51]
-  Q = MedQ
+  attach(Mean_state)
+  Quality = data.frame(MedQ)
 } 
 if(Choix==3)
 {
   Mean_state = data.frame(aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
   Mean_state$LowQ = Mean_state$LowQ[1:51]
-  Q = LowQ
+  attach(Mean_state)
+  Quality = data.frame(LowQ)
 }
 
-attach(Mean_state)
+names(Quality) = "Q"
+attach(Quality)
 
 label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
 label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
