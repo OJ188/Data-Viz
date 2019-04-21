@@ -55,20 +55,42 @@ dygraph(don) %>%
 
 
 ###### Lollipop chart : Mean by state, HighQ, MedQ and LowQ
-Mean_HighQ_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
-Mean_HighQ_state$HighQ = Mean_HighQ_state$HighQ[1:51]
-attach(Mean_HighQ_state)
-# Mean_MedQ_state = aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
-# Mean_LowQ_state = aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
 
-geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) 
+# 1) HighQ 2) MedQ 3) LowQ
+Choix = 1
+# Choix = 2
+# Choix = 3
+if(Choix==1)
+{
+  Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state$HighQ = Mean_state$HighQ[1:51]
+  Q = HighQ
+}
+if(Choix==2)
+{
+  Mean_state = data.frame(aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state$MedQ = Mean_state$MedQ[1:51]
+  Q = MedQ
+} 
+if(Choix==3)
+{
+  Mean_state = data.frame(aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state$LowQ = Mean_state$LowQ[1:51]
+  Q = LowQ
+}
+
+attach(Mean_state)
+
+label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
+label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
+label_min = paste(c(State[Q==min(Q)],":", ceiling(min(Q)),"$/oz."), collapse = " ")
 
 # Reorder
-Mean_HighQ_state %>%
-  arrange(HighQ) %>%
+Mean_state %>%
+  arrange(Q) %>%
   mutate(State=factor(State,State)) %>%
-  ggplot(aes(x=State, y=HighQ)) +
-    geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color="skyblue") +
+  ggplot(aes(x=State, y=Q)) +
+    geom_segment( aes(x=State, xend=State, y=0, yend=Q), color="skyblue") +
     geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
     theme_light() +
     coord_flip() +
@@ -78,30 +100,19 @@ Mean_HighQ_state %>%
       axis.ticks.y = element_blank()
     ) +
     ylab("Mean price per state") +
+
+    annotate("text", x=State[Q==max(Q)], y=max(Q) - 130,
+      # label=("North Dakota : 415$/oz."), color="red") +
+      label=label_max, color="red") +
+    annotate(geom="point", State[Q==max(Q)], y=max(Q), shape=21, size=10, fill="transparent", color="red") +
     
-    annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 160,
-      label=("North Dakota : 415$/oz. (28g)"), color="red") +
-    annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent", color="red") +
-    
-    annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
+    annotate("text", x=State[Q==min(Q)], y=min(Q) - 100,
       label=("Oregon : 208$/oz."), color="red") +
-    annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent", color="red") +
+    annotate(geom="point", State[Q==min(Q)], y=min(Q), shape=21, size=10, fill="transparent", color="red") +
     
-    geom_hline(yintercept=mean(HighQ), color="blue", size=.5) +
-    annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) + 100,
-           label=("Mean : 330$/oz."), color="blue")
-
-
-
-
-
-
-
-
-
-
-
-
+    geom_hline(yintercept=mean(Q), color="blue", size=.5) +
+    annotate("text", x=State[Q==min(Q)], y=min(Q) + 100,
+           label=label_mean, color="blue")
 
 
 
@@ -111,7 +122,7 @@ Mean_HighQ_state %>%
 
 
 # Reorder
-p = Mean_HighQ_state %>%
+p = Mean_state %>%
   arrange(HighQ) %>%
   mutate(State=factor(State,State)) %>%
   ggplot(aes(x=State, y=HighQ)) +
