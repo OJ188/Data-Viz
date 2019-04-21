@@ -125,6 +125,58 @@ Mean_state %>%
 
 
 
+
+
+
+
+
+
+
+#original lolliplot
+
+Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+Mean_state$HighQ = Mean_state$HighQ[1:51]
+attach(Mean_state)
+
+label_max = paste(c(State[HighQ==max(HighQ)],":", ceiling(max(HighQ)),"$/oz."), collapse = " ")
+label_mean = paste(c("Mean :", ceiling(mean(HighQ)),"$/oz."), collapse = " ")
+label_min = paste(c(State[HighQ==min(HighQ)],":", ceiling(min(HighQ)),"$/oz."), collapse = " ")
+
+# Reorder
+Mean_state %>%
+  arrange(HighQ) %>%
+  mutate(State=factor(State,State)) %>%
+  ggplot(aes(x=State, y=HighQ)) +
+  geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color="skyblue") +
+  geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+  theme_light() +
+  coord_flip() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  ylab("Mean price per state") +
+  
+  annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 130,
+           # label=("North Dakota : 415$/oz."), color="red") +
+           label=label_max, color="red") +
+  annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent", color="red") +
+  
+  annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
+           label=("Oregon : 208$/oz."), color="red") +
+  annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent", color="red") +
+  
+  geom_hline(yintercept=mean(HighQ), color="blue", size=.5) +
+  annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) + 100,
+           label=label_mean, color="blue")
+
+
+
+
+
+
+
 # Reorder
 p = Mean_state %>%
   arrange(HighQ) %>%
