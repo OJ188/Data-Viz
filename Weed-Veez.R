@@ -13,7 +13,7 @@ library(lubridate)
 ###### OPENING FILE
 df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
 attach(df)
-df$date <- as.Date(df$date)
+date <- as.Date(date)
 
 
 ###### COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
@@ -119,6 +119,7 @@ p = Mean_HighQ_state %>%
   geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 1.3, 0.7)) +
   geom_point( color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 5, 2) ) +
   theme_light() +
+
   coord_flip() +
   theme(
     panel.grid.major.y = element_blank(),
@@ -168,11 +169,7 @@ p +
   annotate("text", x = grep("A", data$x), y = data$y[which(data$x=="A")]*1.2, label = paste("Group A is not too bad\n (val=",data$y[which(data$x=="A")] %>% round(2),")",sep="" ) , color="orange", size=4 , angle=0, fontface="bold", hjust=0) +
   ggtitle("How did groups A and D perform?")
 
-
-
-
-
-
+                                        
 
 
 
@@ -205,6 +202,8 @@ data2 %>%
   ) +
   coord_flip()
 
+    
+    
 #  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
 
 df %>%
