@@ -1,3 +1,4 @@
+setwd("C:/Users/Théo/Desktop/GitHub/Weed-Veez")
 # Library
 library(zoo)
 library(ggplot2)
@@ -12,10 +13,7 @@ library(lubridate)
 
 ###### OPENING FILE
 df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
-# any(is.na(data))
 attach(df)
-summary(df)
-head(df)
 date <- as.Date(date)
 
 
@@ -27,18 +25,22 @@ na.locf(df)
 ###### PLOTING North Dakota VALUES x=date[value==max(value)], y=max(value)
 North_Dakota = cbind.data.frame(as.Date(date[State=="North Dakota"]), HighQ[State=="North Dakota"])
 North_Dakota_names = c("North_Dakota_date","North_Dakota_HighQ")
-# summary(North Dakota)
 names(North_Dakota) = North_Dakota_names
 attach(North_Dakota)
 
-#Interactive ploting North Dakota
+# Ploting North Dakota
 ggplot(North_Dakota, aes(North_Dakota_date, North_Dakota_HighQ)) +
   geom_line() +
+  ylim(min(North_Dakota_HighQ)-0.2*min(North_Dakota_HighQ),max(North_Dakota_HighQ)+0.2*max(North_Dakota_HighQ)) +
+  # ylim(0,max(North_Dakota_HighQ)+0.2*max(North_Dakota_HighQ)) +
   geom_area(color="black", fill="red") +
-  ylim(0,max(North_Dakota_HighQ)+0.2*max(North_Dakota_HighQ)) +
-  annotate("text", x=date[HighQ==max(HighQ)]+150, y=max(HighQ)+20,
+  annotate("text", x=date[HighQ==max(HighQ)]+190, y=max(HighQ)+20,
+    # label=("test")) +
     label=("Highest price : North Dakota, 1 oz. (28g), 415$")) +
   annotate(geom="point", x=date[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent")
+
+plot_ly(x = date, y = HighQ, type="scatter", mode="markers", fill = "tozeroy")
+
 
 # Interactive graph
 don <- xts(x = North_Dakota_HighQ, order.by = North_Dakota_date)
@@ -53,39 +55,189 @@ dygraph(don) %>%
 
 
 
-###### Lollipo chart : Mean by state, HighQ, MedQ and LowQ
-Mean_HighQ_state = aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
-Mean_MedQ_state = aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
-Mean_LowQ_state = aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
+###### Lollipop chart : Mean by state, HighQ, MedQ and LowQ
 
-geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) 
+# 1) HighQ 2) MedQ 3) LowQ
+Choix = 1
+# Choix = 2
+# Choix = 3
+if(Choix==1)
+{
+  Mean_state = aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df)))
+  Mean_state$HighQ = Mean_state$HighQ[1:51]
+  attach(Mean_state)
+  Quality = data.frame(HighQ)
+}
+if(Choix==2)
+{
+  Mean_state = data.frame(aggregate(MedQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state$MedQ = Mean_state$MedQ[1:51]
+  attach(Mean_state)
+  Quality = data.frame(MedQ)
+} 
+if(Choix==3)
+{
+  Mean_state = data.frame(aggregate(LowQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+  Mean_state$LowQ = Mean_state$LowQ[1:51]
+  attach(Mean_state)
+  Quality = data.frame(LowQ)
+}
+
+Mean_state=Mean_state[order(Mean_state[,2]),]
+names(Quality) = "Q"
+attach(Quality)
+Q = Mean_state$HighQ
+State = Mean_state$State
+
+label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
+label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
+label_min = paste(c(State[Q==min(Q)],":", ceiling(min(Q)),"$/oz."), collapse = " ")
 
 # Reorder
-Mean_HighQ_state %>%
-  arrange(Mean_HighQ_state$HighQ.mean) %>%
-  mutate(State=factor(Mean_HighQ_state$State,Mean_HighQ_state$State)) %>%
-  ggplot( aes(x=Mean_HighQ_state$State, y=Mean_HighQ_state$HighQ.mean)) +
-    geom_segment( aes(x=Mean_HighQ_state$State, xend=Mean_HighQ_state$State, y=0, yend=Mean_HighQ_state$HighQ), color="skyblue") +
-    geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+Mean_state %>%
+  arrange(Q) %>%
+  mutate(State=factor(State,State)) %>%
+  ggplot(aes(x=State, y=Q)) +
+    geom_segment( aes(x=State, xend=State, y=0, yend=Q), color="skyblue") +
+    geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
     theme_light() +
     coord_flip() +
-    # theme(
-    #   panel.grid.major.y = element_blank(),
-    #   panel.border = element_blank(),
-    #   axis.ticks.y = element_blank()
-    # ) +
-    xlab("")
-    # ylab("Value of Y")
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.border = element_blank(),
+      axis.ticks.y = element_blank()
+    ) +
+    ylab("Mean price per state") +
 
-data %>%
-  filter(!is.na(Value)) %>%
-  arrange(Value) %>%
-  mutate(Country=factor(Country, Country)) %>%
-  ggplot( aes(x=Country, y=Value) ) +
-  geom_segment( aes(x=Country ,xend=Country, y=0, yend=Value), color="grey") +
-  geom_point(size=3, color="#69b3a2") +
+    annotate("text", x=State[Q==max(Q)], y=max(Q) - 130,
+      # label=("North Dakota : 415$/oz."), color="red") +
+      label=label_max, color="red") +
+    annotate(geom="point", State[Q==max(Q)], y=max(Q), shape=21, size=10, fill="transparent", color="red") +
+    
+    annotate("text", x=State[Q==min(Q)], y=min(Q) - 100,
+      label=("Oregon : 208$/oz."), color="red") +
+    annotate(geom="point", State[Q==min(Q)], y=min(Q), shape=21, size=10, fill="transparent", color="red") +
+    
+    geom_hline(yintercept=mean(Q), color="blue", size=.5) +
+    annotate("text", x=State[Q==min(Q)], y=min(Q) + 100,
+           label=label_mean, color="blue")
+
+
+
+
+
+
+
+
+
+
+
+
+
+#original lolliplot working
+
+Mean_state = data.frame(aggregate(HighQ~State, data=df, FUN=function(df) c(mean=mean(df), count=length(df))))
+Mean_state$HighQ = Mean_state$HighQ[1:51]
+attach(Mean_state)
+
+label_max = paste(c(State[HighQ==max(HighQ)],":", ceiling(max(HighQ)),"$/oz."), collapse = " ")
+label_mean = paste(c("Mean :", ceiling(mean(HighQ)),"$/oz."), collapse = " ")
+label_min = paste(c(State[HighQ==min(HighQ)],":", ceiling(min(HighQ)),"$/oz."), collapse = " ")
+
+# Reorder
+Mean_state %>%
+  arrange(HighQ) %>%
+  mutate(State=factor(State,State)) %>%
+  ggplot(aes(x=State, y=HighQ)) +
+  geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color="skyblue") +
+  geom_point( size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+  theme_light() +
   coord_flip() +
-  xlab("")
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  ylab("Mean price per state") +
+  
+  annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 130,
+           # label=("North Dakota : 415$/oz."), color="red") +
+           label=label_max, color="red") +
+  annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent", color="red") +
+  
+  annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
+           label=("Oregon : 208$/oz."), color="red") +
+  annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent", color="red") +
+  
+  geom_hline(yintercept=mean(HighQ), color="blue", size=.5) +
+  annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) + 100,
+           label=label_mean, color="blue")
+
+
+
+
+
+
+# 
+# # Higlighting max and min
+# p = Mean_state %>%
+#   arrange(HighQ) %>%
+#   mutate(State=factor(State,State)) %>%
+#   ggplot(aes(x=State, y=HighQ)) +
+#   geom_segment( aes(x=State, xend=State, y=0, yend=HighQ), color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 1.3, 0.7)) +
+#   geom_point( color=ifelse((State=="North Dakota" | State=="Oregon"), "orange", "grey"), size=ifelse((State=="North Dakota" | State=="Oregon"), 5, 2) ) +
+#   theme_light() +
+# 
+#   coord_flip() +
+#   theme(
+#     panel.grid.major.y = element_blank(),
+#     panel.border = element_blank(),
+#     axis.ticks.y = element_blank()
+#   ) +
+#   ylab("Mean price per state") +
+#   
+#   annotate("text", x=State[HighQ==max(HighQ)], y=max(HighQ) - 100,
+#     label=("North Dakota : 1 oz. (28g), 415$")) +
+#   annotate(geom="point", State[HighQ==max(HighQ)], y=max(HighQ), shape=21, size=10, fill="transparent") +
+#   
+#   annotate("text", x=State[HighQ==min(HighQ)], y=min(HighQ) - 100,
+#     label=("Oregon : 1 oz. (28g), 208$")) +
+#   annotate(geom="point", State[HighQ==min(HighQ)], y=min(HighQ), shape=21, size=10, fill="transparent") +
+#   
+#   geom_hline(yintercept=mean(HighQ), color="orange", size=.5)
+# 
+# dev.off()
+# 
+# p +
+#   annotate("text", x = State[HighQ==max(HighQ)], y = max(HighQ)*0.8, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0)
+# 
+# 
+# 
+# 
+# 
+# p = ggplot(data, aes(x=x, y=y)) +
+#   geom_segment( aes(x=x, xend=x, y=0, yend=y ), color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 1.3, 0.7) ) +
+#   geom_point( color=ifelse(data$x %in% c("A","D"), "orange", "grey"), size=ifelse(data$x %in% c("A","D"), 5, 2) ) +
+#   theme_light() +
+#   coord_flip() +
+#   theme(
+#     legend.position="none",
+#     panel.grid.major.y = element_blank(),
+#     panel.border = element_blank(),
+#     axis.ticks.y = element_blank()
+#   ) +
+#   ylab("Value of Y")
+# p
+# dev.off()
+# 
+# p +
+#   annotate("text", x = grep("D", data$x), y = data$y[which(data$x=="D")]*1.2, label = "Group D is very impressive", color="orange", size=4 , angle=0, fontface="bold", hjust=0) + 
+#   annotate("text", x = grep("A", data$x), y = data$y[which(data$x=="A")]*1.2, label = paste("Group A is not too bad\n (val=",data$y[which(data$x=="A")] %>% round(2),")",sep="" ) , color="orange", size=4 , angle=0, fontface="bold", hjust=0) +
+#   ggtitle("How did groups A and D perform?")
+# 
+#                                         
+
+
 
 # IN CASE OF : Error in .Call.graphics(C_palette2, .Call(C_palette2, NULL)) : invalid graphics state
 # USE : dev.off()
@@ -94,6 +246,9 @@ data %>%
 ###### OTHER FUNCTIONS
 sum(is.na(LowQN))
 df[is.na(LowQ)]
+summary(df)
+head(df)
+any(is.na(data))
 
 
 
@@ -102,6 +257,30 @@ df[is.na(LowQ)]
 
 
 
+###### Violin plot
+data2 %>%
+  mutate(text = fct_reorder(text, value, .fun = median)) %>%
+  ggplot(aes(x=text, y=value, fill=text)) +
+  geom_violin() +
+  geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
+  theme(
+    legend.position = "none"
+  ) +
+  coord_flip()
 
+    
+    
+# Kangda graphs2(treemap 2014-01-01)
+df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
+df2=df1[c(1:51),]
+df2$date <- as.Date(df2$date)
+library(treemap)
 
-
+treemap(df2,
+        index="State",
+        vSize="HighQN",
+        title="Treemap: HighQN of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
