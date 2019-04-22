@@ -292,7 +292,8 @@ treemap(df2,
         vSize="HighQN",
         title="Treemap: HighQN of all the states in 2014-01-01",
         fontsize.title=12,
-        cex = 0.5)   
-
+        cex = 0.5,
+        type="index"
+)
         
         
