@@ -83,11 +83,18 @@ if(Choix==3)
   Quality = data.frame(LowQ)
 }
 
+
 Mean_state=Mean_state[order(Mean_state[,2]),]
 names(Quality) = "Q"
 attach(Quality)
 Q = Mean_state$HighQ
 State = Mean_state$State
+
+À revoir                                    
+names(Quality) = "Q"
+attach(Quality)
+Q = as.numeric(HighQ)
+State = as.character(State)
 
 label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
 label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
@@ -256,7 +263,6 @@ any(is.na(data))
 
 
 
-
 ###### Violin plot
 data2 %>%
   mutate(text = fct_reorder(text, value, .fun = median)) %>%
@@ -268,7 +274,12 @@ data2 %>%
   ) +
   coord_flip()
 
-    
+#  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
+
+df %>%
+  filter(State=="Nevada" ) %>%
+  ggplot( aes(x=date, y=HighQN)) +
+  geom_line()    
     
 # Kangda graphs2(treemap 2014-01-01)
 df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
@@ -281,6 +292,7 @@ treemap(df2,
         vSize="HighQN",
         title="Treemap: HighQN of all the states in 2014-01-01",
         fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
+        cex = 0.5)   
+
+        
+        
