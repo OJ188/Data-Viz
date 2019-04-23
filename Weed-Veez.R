@@ -210,4 +210,29 @@ treemap(df2,
         type="index"
 )
         
-        
+treemap(df2,
+        index="State",
+        vSize="LowQ",
+        title="Treemap: LowQ of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+treemap(df2,
+        index="State",
+        vSize="HighQ",
+        title="Treemap: HighQ of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+treemap(df2,
+        index="State",
+        vSize="MedQ",
+        title="Treemap: MedQ of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
