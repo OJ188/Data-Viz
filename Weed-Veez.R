@@ -64,9 +64,9 @@ dygraph(don, main=label_dygraph) %>%
 
 # 1) HighQ 2) MedQ 3) LowQ 4) Average of the 3
 # Choix = 1
-# Choix = 2
+Choix = 2
 # Choix = 3
-Choix = 4
+# Choix = 4
 
 
 if(Choix==1)
@@ -173,14 +173,26 @@ any(is.na(data))
 
 
 
+States_list = c("Indiana","Iowa","Wyoming","Mississippi")
+df_violin = data.frame(subset(df, State == "Alabama"))
+for(i in States_list)
+{
+  df_violin = cbind(df_violin,subset(df, State == i))
+}
+# Mean_state = data.frame(aggregate(MedQ~State, data=df, 
+                                  # FUN=function(df) c(mean=mean(df), count=length(df))))
 
-
+# df_violin=df_violin[order(Violin[,2]),]
+attach(df_violin)
+MedQ_violin = MedQ[1:10]
+State_violin = State[1:10]
+Q = HighQ[1:10]
 
 
 ###### Violin plot
 df %>%
   mutate(State = fct_reorder(State, Q, .fun = median)) %>%
-  ggplot(aes(x=State, y=value, fill=State)) +
+  ggplot(aes(x=State, y=Q, fill=State)) +
   geom_violin() +
   geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
   theme(
