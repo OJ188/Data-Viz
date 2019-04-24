@@ -1,8 +1,10 @@
-setwd("C:/Users/Théo/Desktop/GitHub/Weed-Veez")
+#setwd("C:/Users/Théo/Desktop/GitHub/Weed-Veez")
 # Library
+
 library(zoo)
 library(ggplot2)
 library(dplyr)
+library(DT)
 library(hrbrthemes)
 library(viridis)
 library(plotly)
@@ -10,11 +12,10 @@ library(tidyverse)
 library(dygraphs)
 library(xts)          # To make the convertion data-frame / xts format
 library(lubridate)
-library(rlist)
 library(treemap)
+
 ###### OPENING FILE
-df = read.table("Weed_Price.csv",header=TRUE,sep=",",
-                dec=".",stringsAsFactors = TRUE)
+df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
 attach(df)
 date <- as.Date(date)
 
@@ -24,43 +25,31 @@ df = df[with(df, order(State,date)),]
 na.locf(df)
 
 
-###### PLOTING Washington VALUES (for example)
-# 
-state = "Washington"
+###### PLOTING Washington VALUES
+Washington = cbind.data.frame(as.Date(date[State=="Washington"]), 
+                              HighQ[State=="Washington"])
+Washington_names = c("Washington_date","Washington_HighQ")
+names(Washington) = Washington_names
+attach(Washington)
 
-Chosen_state = cbind.data.frame(as.Date(df$date[df$State==state]), 
-                              df$HighQ[df$State==state])
-Chosen_state_names = c("Chosen_state_date","Chosen_state_HighQ")
-names(Chosen_state) = Chosen_state_names
-attach(Chosen_state)
-
-label_Chosen_state = paste(c("Highest price in", state,
-                             ": 1oz.",max(Chosen_state_HighQ),"$"),
-                             collapse = " ")
-label_dygraph = paste(c("Price fluctuation in", state, 
+label_Washington = paste(c("Highest price in", "Washington : 1oz.",max(HighQ),"$"), 
+                         collapse = " ")
+label_dygraph = paste(c("Price fluctuation in Washington", 
                       collapse = " "))
-label_title = "Prices per once (in dollar)"
-
 # Ploting Washington
-ggplot(Chosen_state, aes(Chosen_state_date, Chosen_state_HighQ)) +
+ggplot(Washington, aes(Washington_date, Washington_HighQ)) +
   geom_line() +
-  ylim(min(Chosen_state_HighQ)-0.2*min(Chosen_state_HighQ),
-       max(Chosen_state_HighQ)+0.2*max(Chosen_state_HighQ)) +
+  ylim(min(Washington_HighQ)-0.2*min(Washington_HighQ),
+       max(Washington_HighQ)+0.2*max(Washington_HighQ)) +
   geom_area(color="black", fill="red") +
-
-  annotate("text",
-           x=Chosen_state_date[Chosen_state_date=="2014-08-09"],
-           y=max(Chosen_state_HighQ)*1.1, label=label_Chosen_state,
-           color="red", fontface="bold") +
-  annotate(geom="point",
-           x=Chosen_state_date[Chosen_state_HighQ==max(Chosen_state_HighQ)],
-           y=max(Chosen_state_HighQ), shape=21, size=10, fill="transparent") +
-  xlab("Dates") +
-  ylab(label_title)
+  annotate("text", x=date[HighQ==max(HighQ)], y=max(HighQ),
+    label=label_Washington) +
+  annotate(geom="point", x=date[HighQ==max(HighQ)], 
+           y=max(HighQ), shape=21, size=10, fill="transparent")
 
 
 # Interactive graph
-don <- xts(x = Chosen_state_HighQ, order.by = Chosen_state_date)
+don <- xts(x = Washington_HighQ, order.by = Washington_date)
 # graph
 dygraph(don, main=label_dygraph) %>%
   dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, 
@@ -82,12 +71,11 @@ dygraph(don, main=label_dygraph) %>%
 # Choix = 3
 Choix = 4
 
-# Quality choice
+
 if(Choix==1)
 {
   Mean_state = data.frame(aggregate(HighQ~State, data=df, 
-                                    FUN=function(df)
-                                      c(mean=mean(df), count=length(df))))
+                                    FUN=function(df) c(mean=mean(df), count=length(df))))
   Mean_state$HighQ = Mean_state$HighQ[1:51]
   Mean_state=Mean_state[order(Mean_state[,2]),]
   Q = Mean_state$HighQ
@@ -96,8 +84,7 @@ if(Choix==1)
 if(Choix==2)
 {
   Mean_state = data.frame(aggregate(MedQ~State, data=df, 
-                                    FUN=function(df)
-                                      c(mean=mean(df), count=length(df))))
+                                    FUN=function(df) c(mean=mean(df), count=length(df))))
   Mean_state$MedQ = Mean_state$MedQ[1:51]
   Mean_state=Mean_state[order(Mean_state[,2]),]
   Q = Mean_state$MedQ
@@ -106,8 +93,7 @@ if(Choix==2)
 if(Choix==3)
 {
   Mean_state = data.frame(aggregate(LowQ~State, data=df, 
-                                    FUN=function(df)
-                                      c(mean=mean(df), count=length(df))))
+                                    FUN=function(df) c(mean=mean(df), count=length(df))))
   Mean_state$LowQ = Mean_state$LowQ[1:51]
   Mean_state=Mean_state[order(Mean_state[,2]),]
   Q = Mean_state$LowQ
@@ -124,19 +110,15 @@ if(Choix==4)
   title = "Average of the 3 qualities"
 }
 
-# Setting the labels
+
 State = as.character(Mean_state$State)
+
 label_max = paste(c(State[Q==max(Q)],":", ceiling(max(Q)),"$/oz."), collapse = " ")
 label_mean = paste(c("Mean :", ceiling(mean(Q)),"$/oz."), collapse = " ")
 label_min = paste(c(State[Q==min(Q)], ceiling(min(Q)),"$/oz."), collapse = " ")
-label_median = paste(c("Median :", State[Q==median(Q)],
-                       "with", ceiling(median(Q)),"$/oz."), collapse = " ")
+label_median = paste(c("Median :", State[Q==median(Q)],"with", ceiling(median(Q)),"$/oz."), collapse = " ")
 label_y = paste(c("Mean price per state :", title), collapse = " ")
 
-# Ploting
-# Median state highlighted in orange
-# Mean in blue
-# Max and min circled in red
 Mean_state %>%
   arrange(Q) %>%
   mutate(State=factor(State,State)) %>%
@@ -181,186 +163,85 @@ Mean_state %>%
 
 
 
-# IN CASE OF : Error in .Call.graphics(C_palette2, .Call(C_palette2, NULL)) : 
-# invalid graphics state
+# IN CASE OF : Error in .Call.graphics(C_palette2, .Call(C_palette2, NULL)) : invalid graphics state
 # USE : dev.off()
 
 
 ###### OTHER FUNCTIONS
 sum(is.na(LowQN))
 df[is.na(LowQ)]
+summary(df)
+head(df)
 any(is.na(data))
 
 
 
-States_list = c("Alabama","Indiana","Iowa","Wyoming","Mississippi")
-# States_list = c("Indiana","Iowa","Wyoming","Mississippi")
-# list_test = list()
-# df_violin = data.frame(subset(df, State == "Alabama"))
-# df_violin <- data.frame(State=character(),
-                 # HighQ=double(),
-                 # MedQ=double(),
-                 # LowQ=double(),
-                 # date=as.Date(character()), 
-                 # stringsAsFactors=FALSE) 
-State_list = data.frame(State=character(),stringsAsFactors = FALSE)
-HighQ_list = data.frame(HighQ=double(),stringsAsFactors = FALSE)
-MedQ_list = data.frame(MedQ=double(),stringsAsFactors = FALSE)
-LowQ_list = data.frame(LowQ=double(),stringsAsFactors = FALSE)
-date_list = data.frame(date=as.Date(character()),stringsAsFactors = FALSE)
-                       
-for(i in States_list)
-{
-  # df_violin = cbind(df_violin,subset(df, State == i))
-  df_violin = subset(df, State == i)
-  State_list = rbind(State_list,df_violin[1])
-  HighQ_list = rbind(HighQ_list,df_violin[2])
-  MedQ_list = rbind(MedQ_list,df_violin[4])
-  LowQ_list = rbind(LowQ_list,df_violin[6])
-  date_list = rbind(date_list,df_violin[8])
-  # df_violin = df_violin[with(df_violin, order(df_violin$State,df_violin$date)),]
-  # na.locf(df_violin)
-  # State_list = list.append(State_list,df_violin[1])
-  # HighQ_list = list.append(HighQ_list,df_violin[2])
-  # MedQ_list = list.append(MedQ_list,df_violin[4])
-  # LowQ_list = list.append(LowQ_list,df_violin[6])
-  # date_list = list.append(date_list,df_violin[8])
-  # list_test = list.append(list_test,subset(df, State == i))
-}
-# Mean_state = data.frame(aggregate(MedQ~State, data=df, 
-                                  # FUN=function(df)
-                                      # c(mean=mean(df), count=length(df))))
 
-# df_violin=df_violin[order(Violin[,2]),]
 
-# df_violin = cbind(State_list,HighQ_list,MedQ_list,LowQ_list,date_list)
-# names_list = c("State","HighQ","MedQ","LowQ","date")
-# names(df_violin) = names_list
-# attach(df_violin)
-State = as.character(State)
-date_list = unique(date_list)
-
-Q = HighQ
 
 
 ###### Violin plot
 df %>%
-  mutate(date = fct_reorder(date, Q, .fun = median)) %>%
-  ggplot(aes(x=date, y=Q, fill=date)) +
+  filter(State=="Alabama"|State=="Hawaii"|State=="Nevada")%>%
+  ggplot(aes(x=State, y=HighQ, fill=State)) +
   geom_violin() +
   geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
   theme(
     legend.position = "none"
   ) +
+  labs(title="Plotting every price submission per state") +
+  ylab("Price per once") +
   coord_flip()
 
-
-
-#  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
-
-df %>%
-  filter(State=="Nevada" ) %>%
-  ggplot( aes(x=date, y=HighQN)) +
-  geom_line()    
-
-##### Treemap plots of prices per state    
-# Kangda graphs2(treemap 2014-01-01)
+    
+# treemap 2014-01-01
 df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
 df2=df1[c(1:51),]
 df2$date <- as.Date(df2$date)
 
-# Ploting treemap of high quality weed prices
+
 treemap(df2,
         index="State",
-        vSize="HighQ",
-        title="Treemap : Prices of high quality of weed 2014-01-01",
+        vSize="HighQN",
+        title="Treemap: HighQN of all the states in 2014-01-01",
         fontsize.title=12,
         cex = 0.5,
         type="index"
 )
-
-# Ploting treemap of medium quality weed prices
-treemap(df2,
-        index="State",
-        vSize="MedQ",
-        title="Treemap : Prices of med quality of weed 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
-
-# Ploting treemap of low quality weed prices
+        
 treemap(df2,
         index="State",
         vSize="LowQ",
-        title="Treemap : Prices of low quality of weed 2014-01-01",
+        title="Treemap: LowQ of all the states in 2014-01-01",
         fontsize.title=12,
         cex = 0.5,
         type="index"
 )
 
-
-###### US map (this code was shamefully copied from 
-# https://plot.ly/r/choropleth-maps/)
-# Showing mean of the 3 qualities and mean of each quality
-
-# Reload to avoid problems
-df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
-attach(df)
-df = df[!(State =="District of Columbia"),]
-State = unique(df$State)
-date <- as.Date(date)
-
-# COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
-df = df[with(df, order(State,df$date)),]
-na.locf(df)
-
-# Calculating means per state
-Mean_state = data.frame(aggregate(df$HighQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-HighQ = ceiling(Mean_state$df.HighQ[1:50])
-Mean_state = data.frame(aggregate(df$MedQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-MedQ = ceiling(Mean_state$df.MedQ[1:50])
-Mean_state = data.frame(aggregate(df$LowQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-LowQ = ceiling(Mean_state$df.LowQ[1:50])
-Mean_state = data.frame(aggregate(
-  (df$HighQ+df$MedQ+df$LowQ)/3~df$State, data=df, 
-  FUN=function(df) c(mean=mean(df), count=length(df))))
-MeanQ = ceiling(Mean_state$X.df.HighQ...df.MedQ...df.LowQ..3[1:50])
-
-
-# Problem in State column with District of Columbia reappearing
-df = df[!(State =="District of Columbia"),]
-State = unique(df$State)
-
-# Loading dataset from plotly
-dfr <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv")
-dfr$hover = paste(State, "<br>", "High Quality", HighQ, "$,", 
-                  "Medium Quality", MedQ, "$,",
-                  "Low Quality", LowQ, "$")
-# give state boundaries a white border
-l <- list(color = toRGB("white"), width = 2)
-# specify some map projection/options
-g <- list(
-  scope = 'usa',
-  projection = list(type = 'albers usa'),
-  showlakes = TRUE,
-  lakecolor = toRGB('white')
+treemap(df2,
+        index="State",
+        vSize="HighQ",
+        title="Treemap: HighQ of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
 )
-# Ploting values
-p <- plot_geo(dfr, locationmode = 'USA-states') %>%
-  add_trace(
-    z = ~MeanQ, text = ~hover, locations = ~code,
-    color = ~MeanQ, colors = 'Purples'
-  ) %>%
-  colorbar(title = "$/oz.") %>%
-  layout(
-    title = 'Mean of weed prices per state ($/oz.)',
-    geo = g
-  )
-p
+
+treemap(df2,
+        index="State",
+        vSize="MedQ",
+        title="Treemap: MedQ of all the states in 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+#  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
+df$date <- as.Date(df$date)
+df %>%
+  filter(State=="Nevada" ) %>%
+  ggplot( aes(x=date, y=HighQN)) +
+  geom_line()  
+
+#datatable 2014
+datatable(df2, rownames = FALSE, filter = "top", options = list(pagelength=5,scrollX=T))
