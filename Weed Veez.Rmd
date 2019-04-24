@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo=FALSE, warning=FALSE, fig.align="center", error=FALSE
 Weed trading has a very large number in the United States. This paper attempts to explore the trends and influencing factors of weed transactions through changes in the price of weed (high,medium and low quality) in the US states in 2014-2017.
 
 <br><center>
-![](0r6ahsjpxev5lmgp.png)
+![](Images/0r6ahsjpxev5lmgp.png)
 </center>
 
 ```{r libraries, eval=TRUE}
@@ -145,7 +145,7 @@ It can be seen that the price of cannabis is generally decreasing.
 <br><br>
 
 <center>
-![](Marijuana-technology.jpg)
+![](Images/Marijuana-technology.jpg)
 </center>
 
 
@@ -223,7 +223,7 @@ The treemaps are a little difficult to see the differences of price between stat
 <br>
 
 <center>
-![](marijuana-memory-forget-bs-weedmemes.jpg)
+![](Images/marijuana-memory-forget-bs-weedmemes.jpg)
 </center>
 
 
@@ -422,7 +422,7 @@ p
 To conclude, we can say that weed is expensive and that you can buy much more things with that much money than just an once of weed of bad quality...
 <br>
 
-![](weed leaf.png)
+![](Images/weed leaf.png)
 
 <br>
 <br>
