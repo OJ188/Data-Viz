@@ -11,10 +11,15 @@ output:
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE, fig.align="center", error=FALSE, message = FALSE)
 ```
 
-Weed trading has a very large number in the United States. This paper attempts to explore the trends and influencing factors of weed transactions through changes in the price of weed (high,medium and low quality) in the US states in 2014-2017.
-![](0r6ahsjpxev5lmgp.png)
+<center> <H1> Weed Veez </H1> </center>
 
-```{r libraries, message=FALSE,eval=TRUE}
+Weed trading has a very large number in the United States. This paper attempts to explore the trends and influencing factors of weed transactions through changes in the price of weed (high,medium and low quality) in the US states in 2014-2017.
+
+<br><center>
+![](0r6ahsjpxev5lmgp.png)
+</center>
+
+```{r libraries, eval=TRUE}
 library(zoo)
 library(ggplot2)
 library(dplyr)
@@ -31,7 +36,8 @@ library(DT)
 ```
 
 
-#Comparison of weed transaction prices in the US in 2014-2015
+#Raw Data
+
 
 ```{r opening file}
 
@@ -46,18 +52,190 @@ df = na.locf(df)
 
 ```
 
+<br>
 First, let’s take a look at the weed prices per state in 2014 (three different qualities).
+We'll use a datatable to look at the dataset's general structure.
 
-```{r datatable, message=FALSE}
+<br>
+The quality rows ending with N just represent how many prices were submitted for that specific day in that particular state. We do not use this information in this study.
+<br><br>
+
+```{r datatable}
 df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
 df2=df1[c(1:51),]
 df2$date <- as.Date(df2$date)
 datatable(df2, rownames = FALSE, filter = "top", options = list(pagelength=5,scrollX=T))
 ```
 
-Maybe the query form is not intuitive enough ? So let's take a look at a lollipop chart !
+<br>
+It is uneasy to get a nice representation of the data in this form.
+<br>
 
-```{r lollipop, message=FALSE}
+So let's get a look at the trend of the prices through a simple line plot !
+
+
+#Weed price trends (2014-2017)
+
+
+A line plot is nice to look at simple data with only 2 parameters.
+To have a first look at the data for one given state and one given quality, it is more than enough.
+<br>
+
+Well, we all know that the legal restrictions on cannabis have gradually been relaxed after 2014, so can we see a decrease of these prices ? (Take Washington as an example)
+<br>
+
+```{r Price fluctuation}
+###### PLOTING Washington VALUES (for example)
+# Only need to change state value to get the graph for another state.
+# Quality can be easily changed here by replacing all the occurencies of High by Med or Low.
+state = "Washington"
+
+Chosen_state = cbind.data.frame(as.Date(df$date[df$State==state]), 
+                              df$HighQ[df$State==state])
+Chosen_state_names = c("Chosen_state_date","Chosen_state_HighQ")
+names(Chosen_state) = Chosen_state_names
+attach(Chosen_state)
+
+label_Chosen_state = paste(c("Highest price in", state,
+                             ": 1oz.",max(Chosen_state_HighQ),"$"),
+                             collapse = " ")
+label_dygraph = paste(c("Price fluctuation in", state, 
+                      collapse = " "))
+label_title = "Prices per once (in dollar)"
+
+# Ploting Washington
+ggplot(Chosen_state, aes(Chosen_state_date, Chosen_state_HighQ)) +
+  geom_line() +
+  ylim(min(Chosen_state_HighQ)-0.2*min(Chosen_state_HighQ),
+       max(Chosen_state_HighQ)+0.2*max(Chosen_state_HighQ)) +
+  geom_area(color="black", fill="red") +
+
+  annotate("text",
+           x=Chosen_state_date[Chosen_state_date=="2014-08-09"],
+           y=max(Chosen_state_HighQ)*1.1, label=label_Chosen_state,
+           color="red", fontface="bold") +
+  annotate(geom="point",
+           x=Chosen_state_date[Chosen_state_HighQ==max(Chosen_state_HighQ)],
+           y=max(Chosen_state_HighQ), shape=21, size=10, fill="transparent") +
+  xlab("Dates") +
+  ylab(label_title)
+```
+
+<br>
+It must be easier to read with an interactive time series chart !
+<br><br>
+
+```{r Interactive price fluctuation}
+# Interactive graph
+don <- xts(x = Chosen_state_HighQ, order.by = Chosen_state_date)
+# graph
+dygraph(don, main=label_dygraph) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, 
+            drawGrid = FALSE, colors="#D8AE5A") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, 
+              hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+
+```
+
+<br>
+It can be seen that the price of cannabis is generally decreasing.
+<br><br>
+
+<center>
+![](Marijuana-technology.jpg)
+</center>
+
+
+#Comparison of different prices of cannabis per quality in different states（high, medium and low quality).
+
+
+To compare the prices between states, we can first look at these 3 particular states and their prices for high quality weed in a violin chart. The point with a violin chart is that it enables us to see the spread of the prices values and how many there are data.
+<br>
+We chose Alabama, Hawaii and Nevada for no specific reason. These states can easily be changed in the code.
+<br><br>
+
+```{r violin}
+###### Violin plot
+df %>%
+  filter(State=="Alabama"|State=="Hawaii"|State=="Nevada")%>%
+  ggplot(aes(x=State, y=HighQ, fill=State)) +
+  geom_violin() +
+  geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
+  theme(
+    legend.position = "none"
+  ) +
+  labs(title="Plotting every price submission per state") +
+  ylab("Price per once") +
+  coord_flip()
+```
+
+
+Plotting every single state on a violin chart is not very legible. Using treemaps is a nice way to order the prices per state and compare them.
+<br>
+These 3 treemaps show the mean of each quality per state.
+<br><br>
+
+```{r treemap}
+##### Treemap plots of prices per state    
+df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
+df2=df1[c(1:51),]
+df2$date <- as.Date(df2$date)
+
+# Ploting treemap of high quality weed prices
+treemap(df2,
+        index="State",
+        vSize="HighQ",
+        title="Treemap : Prices for high quality weed 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+# Ploting treemap of medium quality weed prices
+treemap(df2,
+        index="State",
+        vSize="MedQ",
+        title="Treemap : Prices for medium quality weed 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+# Ploting treemap of low quality weed prices
+treemap(df2,
+        index="State",
+        vSize="LowQ",
+        title="Treemap : Prices for low quality weed 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+```
+
+<br>
+It can be seen that the prices of low quality cannabis are very widely spread, maybe because of some scams. However, for better qualities, the prices are heterogeneous. One can think that the good quality weed is provided by reliable sources with homogeneous prices.
+<br>
+<br>
+The treemaps are a little difficult to see the differences of price between states. Maybe there is another chart that can show us the data more clearly...
+<br>
+
+<center>
+![](marijuana-memory-forget-bs-weedmemes.jpg)
+</center>
+
+
+#States prices comparison
+
+<br><br>
+To compare the prices between states, it is easier if one has every data needed at the same place. This is why we chose to implement a lollipop chart that can show the maximal mean, mean of all the means and minimum mean prices per state as well as the median state.
+<br><br>
+Important note : This chart can be easily changed in the code to represent the mean of high, medium or low quality instead of the mean of the 3 by only changing the value of the variable Choix.
+<br><br>
+
+```{r lollipop}
 
 ###### Lollipop chart : Mean by state, HighQ, MedQ, LowQ and average
 
@@ -159,165 +337,58 @@ Mean_state %>%
 
 ```
 
+<br>
 Obviously, there is a large gap between the states' cannabis prices, which may be due to the difficulty to import weed or to the taxes in some states.
-![](Marijuana-technology.jpg)
+<br><br>
 
-#Weed price trends (2014-2017)
+Finally, we'll look at the deviation of the cannabis prices between states through an interactive map chart. A map chart will give us a very meaningful representation of our data.
 
-Well, we all know that the legal restrictions on cannabis have gradually been relaxed after 2014, so can we conclude that the trend of prices reflects the previous conjecture of impact factors?(Take Washington as an example)
+<br>
+Here, the map only represents the mean of all prices per state. The means of every quality per state can be seen by moving the mouse above one given state.
+<br><br>
 
-```{r Price fluctuation, message=FALSE}
-###### PLOTING Washington VALUES (for example)
-# 
-state = "Washington"
-
-Chosen_state = cbind.data.frame(as.Date(df$date[df$State==state]), 
-                              df$HighQ[df$State==state])
-Chosen_state_names = c("Chosen_state_date","Chosen_state_HighQ")
-names(Chosen_state) = Chosen_state_names
-attach(Chosen_state)
-
-label_Chosen_state = paste(c("Highest price in", state,
-                             ": 1oz.",max(Chosen_state_HighQ),"$"),
-                             collapse = " ")
-label_dygraph = paste(c("Price fluctuation in", state, 
-                      collapse = " "))
-label_title = "Prices per once (in dollar)"
-
-# Ploting Washington
-ggplot(Chosen_state, aes(Chosen_state_date, Chosen_state_HighQ)) +
-  geom_line() +
-  ylim(min(Chosen_state_HighQ)-0.2*min(Chosen_state_HighQ),
-       max(Chosen_state_HighQ)+0.2*max(Chosen_state_HighQ)) +
-  geom_area(color="black", fill="red") +
-
-  annotate("text",
-           x=Chosen_state_date[Chosen_state_date=="2014-08-09"],
-           y=max(Chosen_state_HighQ)*1.1, label=label_Chosen_state,
-           color="red", fontface="bold") +
-  annotate(geom="point",
-           x=Chosen_state_date[Chosen_state_HighQ==max(Chosen_state_HighQ)],
-           y=max(Chosen_state_HighQ), shape=21, size=10, fill="transparent") +
-  xlab("Dates") +
-  ylab(label_title)
-
-
-# Interactive graph
-don <- xts(x = Chosen_state_HighQ, order.by = Chosen_state_date)
-# graph
-dygraph(don, main=label_dygraph) %>%
-  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, 
-            drawGrid = FALSE, colors="#D8AE5A") %>%
-  dyRangeSelector() %>%
-  dyCrosshair(direction = "vertical") %>%
-  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, 
-              hideOnMouseOut = FALSE)  %>%
-  dyRoller(rollPeriod = 1)
-
-```
-
-It can be seen that the price of cannabis（weed) is generally on the rise.
-
-Maybe Washington is a special case? Look again at Nevada！
-
-```{r Nevada HighQN, message=FALSE}
-#  Kangda graphs1(Tendance de la croissance Nevada HighQN)
-df$date <- as.Date(df$date)
-df %>%
-  filter(State=="Nevada" ) %>%
-  ggplot( aes(x=date, y=HighQN)) +
-  geom_line()  
-```
-
-The price increase here is more obvious.
-![](marijuana-memory-forget-bs-weedmemes.jpg)
-
-#Comparison of different quality prices of cannabis in different states（high, medium and low quality).
-
-```{r treemap , message=FALSE}
-##### Treemap plots of prices per state    
-df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
-df2=df1[c(1:51),]
-df2$date <- as.Date(df2$date)
-
-# Ploting treemap of high quality weed prices
-treemap(df2,
-        index="State",
-        vSize="HighQ",
-        title="Treemap : Prices of high quality of weed 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
-
-# Ploting treemap of medium quality weed prices
-treemap(df2,
-        index="State",
-        vSize="MedQ",
-        title="Treemap : Prices of med quality of weed 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
-
-# Ploting treemap of low quality weed prices
-treemap(df2,
-        index="State",
-        vSize="LowQ",
-        title="Treemap : Prices of low quality of weed 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
-```
-It can be seen that the price of low quality cannabis is close to always, and the higher the quality, the greater the price difference.
-
-Therefore, we can make a reasonable inference: the premium attached to the price of cannabis is proportional to the quality.
-
-#Map chart
-Finally, we look at the deviation of the cannabis price in the same state through the map chart.
-```{r map , message=FALSE}
+```{r map}
 ###### US map (this code was shamefully copied from 
 # https://plot.ly/r/choropleth-maps/)
 # Showing mean of the 3 qualities and mean of each quality
 
 # Reload to avoid problems
-df = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
-attach(df)
-df = df[!(State =="District of Columbia"),]
-State = unique(df$State)
+dft = read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".",stringsAsFactors = TRUE)
+attach(dft)
+dft = dft[!(State =="District of Columbia"),]
+State = unique(dft$State)
 date <- as.Date(date)
 
 # COMPLETING MISSING VALUES WITH LAST NONE NA VALUE
-df = df[with(df, order(State,df$date)),]
-na.locf(df)
+dft = dft[with(dft, order(State,dft$date)),]
+dft = na.locf(dft)
 
 # Calculating means per state
-Mean_state = data.frame(aggregate(df$HighQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-HighQ = ceiling(Mean_state$df.HighQ[1:50])
-Mean_state = data.frame(aggregate(df$MedQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-MedQ = ceiling(Mean_state$df.MedQ[1:50])
-Mean_state = data.frame(aggregate(df$LowQ~df$State, data=df, 
-                                  FUN=function(df)
-                                    c(mean=mean(df), count=length(df))))
-LowQ = ceiling(Mean_state$df.LowQ[1:50])
+Mean_state = data.frame(aggregate(dft$HighQ~dft$State, data=dft,
+                                  FUN=function(dft)
+                                    c(mean=mean(dft), count=length(dft))))
+HighQ = ceiling(Mean_state$dft.HighQ[1:50])
+Mean_state = data.frame(aggregate(dft$MedQ~dft$State, data=dft,
+                                  FUN=function(dft)
+                                    c(mean=mean(dft), count=length(dft))))
+MedQ = ceiling(Mean_state$dft.MedQ[1:50])
+Mean_state = data.frame(aggregate(dft$LowQ~dft$State, data=dft,
+                                  FUN=function(dft)
+                                    c(mean=mean(dft), count=length(dft))))
+LowQ = ceiling(Mean_state$dft.LowQ[1:50])
 Mean_state = data.frame(aggregate(
-  (df$HighQ+df$MedQ+df$LowQ)/3~df$State, data=df, 
-  FUN=function(df) c(mean=mean(df), count=length(df))))
-MeanQ = ceiling(Mean_state$X.df.HighQ...df.MedQ...df.LowQ..3[1:50])
+  (dft$HighQ+dft$MedQ+dft$LowQ)/3~dft$State, data=dft,
+  FUN=function(dft) c(mean=mean(dft), count=length(dft))))
+MeanQ = ceiling(Mean_state$X.dft.HighQ...dft.MedQ...dft.LowQ..3[1:50])
 
 
 # Problem in State column with District of Columbia reappearing
-df = df[!(State =="District of Columbia"),]
-State = unique(df$State)
+dft = dft[!(State =="District of Columbia"),]
+State = unique(dft$State)
 
 # Loading dataset from plotly
 dfr <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv")
-dfr$hover = paste(State, "<br>", "High Quality", HighQ, "$,", 
+dfr$hover = paste(State, "<br>", "High Quality", HighQ, "$,",
                   "Medium Quality", MedQ, "$,",
                   "Low Quality", LowQ, "$")
 # give state boundaries a white border
@@ -345,19 +416,13 @@ p
 ```
 
 
+#Conclusion
+
+
+To conclude, we can say that weed is expensive and that you can buy much more things with that much money than just an once of weed of bad quality...
+<br>
+
 ![](weed leaf.png)
 
-```{r violin , message=FALSE}
-###### Violin plot
-df %>%
-  filter(State=="Alabama"|State=="Hawaii"|State=="Nevada")%>%
-  ggplot(aes(x=State, y=HighQ, fill=State)) +
-  geom_violin() +
-  geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
-  theme(
-    legend.position = "none"
-  ) +
-  labs(title="Plotting every price submission per state") +
-  ylab("Price per once") +
-  coord_flip()
-```
+<br>
+<br>
