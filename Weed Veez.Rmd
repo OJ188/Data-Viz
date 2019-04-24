@@ -319,3 +319,18 @@ p
 
 
 ![](weed leaf.png)
+
+```{r violin , message=FALSE}
+###### Violin plot
+df %>%
+  filter(State=="Alabama"|State=="Hawaii"|State=="Nevada")%>%
+  ggplot(aes(x=State, y=HighQ, fill=State)) +
+  geom_violin() +
+  geom_jitter(color="grey", width=.2, size=.9, alpha=.8) +
+  theme(
+    legend.position = "none"
+  ) +
+  labs(title="Plotting every price submission per state") +
+  ylab("Price per once") +
+  coord_flip()
+```
