@@ -65,9 +65,9 @@ dygraph(don, main=label_dygraph) %>%
 
 # 1) HighQ 2) MedQ 3) LowQ 4) Average of the 3
 # Choix = 1
-Choix = 2
+# Choix = 2
 # Choix = 3
-# Choix = 4
+Choix = 4
 
 
 if(Choix==1)
