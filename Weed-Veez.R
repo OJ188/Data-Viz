@@ -213,14 +213,13 @@ for(i in States_list)
 
 # df_violin=df_violin[order(Violin[,2]),]
 
-df_violin = cbind(State_list,HighQ_list,MedQ_list,LowQ_list,date_list)
-names_list = c("State","HighQ","MedQ","LowQ","date")
-names(df_violin) = names_list
-attach(df_violin)
+# df_violin = cbind(State_list,HighQ_list,MedQ_list,LowQ_list,date_list)
+# names_list = c("State","HighQ","MedQ","LowQ","date")
+# names(df_violin) = names_list
+# attach(df_violin)
 State = as.character(State)
+date_list = unique(date_list)
 
-
-# Q = df_violin[, grepl("\\bHighQ\\b", names(df_violin))]
 Q = HighQ
 
 
@@ -234,6 +233,43 @@ df %>%
     legend.position = "none"
   ) +
   coord_flip()
+
+
+
+
+
+
+
+# US map
+
+library(plotly)
+dfm <- read.csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_us_cities.csv')
+
+dfm$q <- with(dfm, cut(pop, quantile(pop)))
+levels(dfm$q) <- paste(c("1st", "2nd", "3rd", "4th", "5th"), "Quantile")
+dfm$q <- as.ordered(dfm$q)
+
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showland = TRUE,
+  landcolor = toRGB("gray85"),
+  subunitwidth = 1,
+  countrywidth = 1,
+  subunitcolor = toRGB("white"),
+  countrycolor = toRGB("white")
+)
+
+p <- plot_geo(dfm, locationmode = 'USA-states', sizes = c(1, 250)) %>%
+  add_markers(
+    x = ~lon, y = ~lat, size = ~pop, color = ~q, hoverinfo = "text",
+    text = ~paste(dfm$name, "<br />", dfm$pop/1e6, " million")
+  ) %>%
+  layout(title = '2014 US city populations<br>(Click legend to toggle)', geo = g)
+
+
+
+
 
 #  Kangda graphs1(Tendance de la croissance Nevada HighQN 2014-01-01)
 
@@ -282,3 +318,6 @@ treemap(df2,
         cex = 0.5,
         type="index"
 )
+
+
+
