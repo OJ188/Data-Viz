@@ -269,16 +269,6 @@ df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
 df2=df1[c(1:51),]
 df2$date <- as.Date(df2$date)
 
-# Ploting treemap for number of prices submitted per state
-treemap(df2,
-        index="State",
-        vSize="HighQN",
-        title="Treemap: HighQN of all the states in 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
-
 # Ploting treemap of high quality weed prices
 treemap(df2,
         index="State",
