@@ -262,12 +262,14 @@ df %>%
   filter(State=="Nevada" ) %>%
   ggplot( aes(x=date, y=HighQN)) +
   geom_line()    
-    
+
+##### Treemap plots of prices per state    
 # Kangda graphs2(treemap 2014-01-01)
 df1=read.table("Weed_Price.csv",header=TRUE,sep=",",dec=".")
 df2=df1[c(1:51),]
 df2$date <- as.Date(df2$date)
 
+# Ploting treemap for number of prices submitted per state
 treemap(df2,
         index="State",
         vSize="HighQN",
@@ -276,16 +278,8 @@ treemap(df2,
         cex = 0.5,
         type="index"
 )
-        
-treemap(df2,
-        index="State",
-        vSize="LowQ",
-        title="Treemap : Prices of low quality of weed 2014-01-01",
-        fontsize.title=12,
-        cex = 0.5,
-        type="index"
-)
 
+# Ploting treemap of high quality weed prices
 treemap(df2,
         index="State",
         vSize="HighQ",
@@ -295,10 +289,21 @@ treemap(df2,
         type="index"
 )
 
+# Ploting treemap of medium quality weed prices
 treemap(df2,
         index="State",
         vSize="MedQ",
         title="Treemap : Prices of med quality of weed 2014-01-01",
+        fontsize.title=12,
+        cex = 0.5,
+        type="index"
+)
+
+# Ploting treemap of low quality weed prices
+treemap(df2,
+        index="State",
+        vSize="LowQ",
+        title="Treemap : Prices of low quality of weed 2014-01-01",
         fontsize.title=12,
         cex = 0.5,
         type="index"
