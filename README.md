@@ -1,6 +1,6 @@
 # Weed Veez
 <br><br>
-  ![](weed.jpg)
+  ![](Images/Marijuana-technology.jpg)
 <br><br>
 
 Weed Veez is a project in which Kangda and I try to visualize the different data we found regarding the prices of weed in the US.
